@@ -1,16 +1,9 @@
-#!/usr/bin/env perl
-
-use lib 'blib/lib';
-
-##!perl -T
+#!perl -T
 use 5.008;
 use strict;
 use warnings;
 
 use utf8;
-
-use Data::Dump qw/pp/;
-use Data::Dumper;
 
 our $VERSION='0.03';
 
@@ -24,8 +17,10 @@ use open ':std', ':encoding(utf8)';
 use Test::More;
 #use Test::Deep;
 
-use Data::Dumper;
 use Data::Random::Structure::UTF8;
+
+use Data::Dump qw/pp/;
+use Data::Dumper;
 
 # we are dealing with a random generator
 # so give it a change to produce some unicode

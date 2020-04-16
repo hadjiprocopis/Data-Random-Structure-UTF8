@@ -10,7 +10,7 @@ sub MY::libscan {
 }
 
 my %WriteMakefileArgs = (
-INSTALL_BASE => "$ENV{HOME}/usr",
+#INSTALL_BASE => "$ENV{HOME}/usr",
     NAME             => 'Data::Random::Structure::UTF8',
     AUTHOR           => q{Andreas Hadjiprocopis <bliako ta cpan.org / andreashad2 ta gmail.com>},
     VERSION_FROM     => 'lib/Data/Random/Structure/UTF8.pm',
@@ -31,7 +31,26 @@ INSTALL_BASE => "$ENV{HOME}/usr",
 	'Carp' => '0',
 	'Data::Random::Structure' => '0',
     },
-    dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+ 	# Thanks to marto @ Perlmonks.org
+	# see https://perlmonks.org/?displaytype=displaycode;node_id=359256;part=1;abspart=1
+    META_MERGE => {
+        'meta-spec' => { version => 2 },
+	requires    => { perl    => '5.10.0' },
+        resources   => {
+            license    => 'artistic_2',
+	    homepage   => 'https://metacpan.org/module/Statistics::Covid',
+            repository => {
+                url  => 'https://github.com/hadjiprocopis/statistics-covid',
+                web  => 'https://github.com/hadjiprocopis/statistics-covid',
+                type => 'git',
+            },
+            bugtracker => {
+                web => 'https://github.com/hadjiprocopis/statistics-covid/issues',
+            }
+        },
+    },
+
+   dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Data-Random-Structure-UTF8-*' },
 );
 
