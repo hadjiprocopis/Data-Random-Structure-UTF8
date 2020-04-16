@@ -1,11 +1,11 @@
 #!perl -T
-use 5.008;
+use 5.8.0;
 use strict;
 use warnings;
 
 use utf8;
 
-our $VERSION='0.03';
+our $VERSION='0.04';
 
 binmode STDERR, ':encoding(UTF-8)';
 binmode STDOUT, ':encoding(UTF-8)';

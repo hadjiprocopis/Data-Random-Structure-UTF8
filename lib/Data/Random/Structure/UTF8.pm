@@ -1,26 +1,65 @@
 package Data::Random::Structure::UTF8;
 
-use 5.006;
+use 5.8.0;
 use strict;
 use warnings;
 
-our $VERSION='0.03';
+our $VERSION='0.04';
 
 use parent 'Data::Random::Structure';
 
-use List::Util   qw( max );
-use Unicode::UCD qw( charscripts charinfo charprop );
-use Carp qw(croak);
+use Scalar::Util qw( looks_like_number );
 
 sub	new {
 	my $class = shift;
-	my $self = $class->SUPER::new(@_);
+	my %options = @_;
+	my $only_unicode = 0;
+	if( exists $options{'only-unicode'} ){
+		if( defined $options{'only-unicode'} ){
+			$only_unicode = $options{'only-unicode'}
+		}
+		# do not pass our options to parent it may get confused and croak
+		delete $options{'only-unicode'}
+	}
+	my $self = $class->SUPER::new(%options);
+	# at this point our _init() will be called via parent's
+	# constructor. Our _init() will call parent's _init()
+	$self->only_unicode($only_unicode);
 	return $self
+}
+sub	_reset {
+	my $self = shift;
+	# we are interfering with the internals of the parent... not good
+	$#{$self->{_types}} = -1;
+	$#{$self->{_scalar_types}} = -1;
 }
 sub	_init {
 	my $self = shift;
+	$self->_reset();
 	$self->SUPER::_init(@_);
 	push @{$self->{_scalar_types}}, 'string-UTF8'
+}
+sub	only_unicode {
+	my $self = $_[0];
+	my $m = $_[1];
+	return $self->{'_only-unicode'} unless defined $m;
+	$self->_init();
+	$self->{'_only-unicode'} = $m;
+	if( $m == 1 ){
+		# delete just the 'string' type
+		# we will get various types but the strings will
+		# be exclusively unicode
+		my @idx = grep { $self->{'_scalar_types'}->[$_] eq 'string' }
+			reverse 0 .. $#{$self->{_scalar_types}}
+		;
+		splice(@{$self->{_scalar_types}}, $_, 1) for @idx;
+	} elsif( $m > 1 ){
+		# delete ALL the _scalar_types and leave just our unicode string
+		# we will get only unicode strings no other scalar type
+		$#{$self->{_scalar_types}} = -1;
+		push @{$self->{_scalar_types}}, 'string-UTF8'
+	}
+	return $m
 }
 sub	random_char_UTF8 {
 	# the crucial part borrowed from The Effective Perler:
@@ -86,6 +125,60 @@ sub	generate_scalar {
 	}
 	return $rc
 }
+sub	check_content_recursively {
+	my $looking_for = $_[1]; # a hashref of types to look-for, required
+	my $bitparams = 0;
+	$bitparams |= 1 if exists($looking_for->{'numbers'}) && ($looking_for->{'numbers'}==1);
+	$bitparams |= 2 if exists($looking_for->{'strings-unicode'}) && ($looking_for->{'strings-unicode'}==1);
+	$bitparams |= 4 if exists($looking_for->{'strings-plain'}) && ($looking_for->{'strings-plain'}==1);
+	$bitparams |= (2+4) if exists($looking_for->{'strings'}) && ($looking_for->{'strings'}==1);
+	return _check_content_recursively($_[0], $bitparams);
+}
+# returns 1 if we are looking for it and it was found
+# returns 0 if what we were looking for was not found.
+# 'looking_for' can be more than one things.
+# it is a bit string, 1st bit if set looks for numbers,
+# 2nd bit, if set, looks for unicode strings,
+# 3rd bit, if set, looks for non-unicode strings (plain)
+sub	_check_content_recursively {
+	my $inp = $_[0];
+	# NUMBER,UNICODE_STRING,NON_UNICODE_STRING
+	my $looking_for = $_[1];
+	my $aref = ref($inp);
+	my ($r, $v);
+	if( $aref eq '' ){
+		if( looks_like_number($inp) ){
+			return 1 if $looking_for & 1; # a number
+			return 0;
+		}
+		if( _has_utf8($inp) ){
+			return 1 if $looking_for & 2; # unicode string
+			return 0;
+		}
+		return 1 if $looking_for & 4; # plain string
+		return 0;
+	} elsif( $aref eq 'ARRAY' ){
+		for my $v (@$inp){
+			$r = _check_content_recursively($v, $looking_for);
+			return 1 if $r;
+		}
+	} elsif( $aref eq 'HASH' ){
+		for my $k (sort keys %$inp){
+			$r = _check_content_recursively($k, $looking_for);
+			return 1 if $r;
+			$r = _check_content_recursively($inp->{$k}, $looking_for);
+			return 1 if $r;
+		}
+	} else { die "don't know how to deal with this ref '$aref'" }
+}
+sub	_has_utf8 { return $_[0] =~ /[^\x00-\x7f]/ }
+# this does not work for unicode strings
+# from https://www.perlmonks.org/?node_id=958679
+# and https://www.perlmonks.org/?node_id=791677
+#sub isnum ($) {
+#    return 0 if $_[0] eq '';
+#    $_[0] & ~$_[0] ? 0 : 1
+#}
 1;
 
 =pod
@@ -98,7 +191,7 @@ Data::Random::Structure::UTF8 - Produce nested data structures with unicode keys
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =head1 SYNOPSIS
 
@@ -137,49 +230,60 @@ strings, at the moment) unicode strings.
     use Data::Random::Structure::UTF8;
 
     my $randomiser = Data::Random::Structure::UTF8->new(
-        max_depth => 5,
-        max_elements => 20,
+        'max_depth' => 5,
+        'max_elements' => 20,
+        # all the strings produced (keys, values, elements)
+	# will be unicode strings
+	'only-unicode' => 1,
+        # all the strings produced (keys, values, elements)
+	# will be a mixture of unicode and non-unicode
+	# this is the default behaviour
+	#'only-unicode' => 0,
+        # only unicode strings will be produced for (keys, values, elements),
+	# there will be no numbers, no bool, only unicode strings
+	#'only-unicode' => 2,
     );
     my $perl_var = $randomiser->generate() or die;
     print pp($perl_var);
 
     # which prints the usual escape mess of Dump and Dumper
 [
-  "\x{7D5A}\x{4EC1}\x{6AE}\x{1F9A}\x{190}\x{72D9}\x{2EE2}\x{4C54}\x{ED71}\x{8161}\x{161E}",
-  "\x{E6E2}\x{75A4}\x{194B}\x{678D}\x{B522}\x{B06F}\x{FFAA}\x{10733}\x{C35F}\x{8B77}\x{FF25}\x{14C8}\x{843A}\x{E2EE}\x{10360}\x{C108}\x{3E55}",
+  "\x{7D5A}\x{4EC1}",
+  "\x{E6E2}\x{75A4}",
   329076,
   0.255759160148987,
-  "RZY}A+3Q%`J/Oonu7xEHV)z-<",
-  1,
-  "\x{A847}\x{6E7E}\x{47A5}\x{7D6}\x{F6C1}\x{7315}\x{7B94}\x{AD5B}\x{F87C}\x{7FCB}\x{1FEB}\x{D1EA}\x{6B65}\x{10635}\x{1287}\x{5466}\x{F66E}\x{F501}\x{5D8B}\x{FA87}\x{3E03}\x{9279}",
-  "\x{FBEE}\x{66C9}\x{5880}\x{F861}\x{B0FB}\x{18BF}\x{1B8}\x{EFD9}\x{3448}\x{F39C}9\x{85AF}\x{97D3}\x{A2D1}\x{61C}\x{BC54}\x{3012}\x{963F}\x{EA46}\x{B0C7}\x{CF89}\x{8C3F}\x{1062F}\x{50D7}\x{F6AB}\x{8261}",
-  150763,
-  0.995195566715751,
-  540387,
-  "n^h%KIOdtl?v8(bCXkPNjx74R",
-  0.659785029547361,
-  "\x{54AA}\x{F0DE}\x{35F7}\x{CEF3}\x{E3BE}\x{2AEE}",
-  0.0238308786033095,
-  59973,
   [
     "TEb97qJt",
     1,
     "_ow|J\@~=6%*N;52?W3Y\$S1",
-    0.931256396568543,
-    0.466393020781872,
-    0.400670775469877,
-    "\x{EABE}\x{22E8}\x{F8C7}\x{2E99}\x{3A55}\x{F3A2}\x{C5BA}",
-    0.113700689106214,
-    "1-M&B/",
-    "\x{82D0}\x{7AB0}\x{9BDC}\x{3A08}\x{F236}\x{DBC2}\x{2093}\x{1608}\x{A16F}\x{A2D2}\x{4FE8}\x{2780}\x{8625}\x{11A1}\x{2F8}\x{92FA}\x{B10D}\x{EF1C}\x{1008C}\x{C5FE}\x{48D7}\x{A081}\x{B8B5}\x{5F88}\x{16F6}\x{F44E}\x{EB52}\x{3CE4}\x{3780}\x{6AB6}\x{59F5}",
-    0.941029056924428,
-    0.27890646290453,
-    "\x{3EFA}\x{5C5A}\x{EF74}\x{FB2F}\x{A663}\x{9E55}\x{2AAA}\x{CC77}\x{5C41}",
-    "\\Rz.U<\"yD,qMu~lN",
-    305433,
-    "A#W&V\"",
-    1,
+    {
+      "x{75A4}x{75A4}" => 123,
+      "123" => "\x{7D5A}\x{4EC1}",
+      "xyz" => [1, 2, "\x{7D5A}\x{4EC1}"],
+    },
   ],
+
+    # can control the scalar type (for keys, values, items) on the fly
+    # this produces unicode strings in addition to
+    # Data::Random::Structure's usual repertoire:
+    # non-unicode-string, numbers, bool, integer, float, etc.
+    # (see there for the list)
+    $randomiser->only_unicode(0); # the default: anything plus unicode strings
+    print $randomiser->only_unicode();
+
+    # this produces unicode strings in addition to
+    # Data::Random::Structure's usual repertoire:
+    # numbers, bool, integer, float, etc.
+    # (see there for the list)
+    # EXCEPT non-unicode-strings, (all strings will be unicode)
+    $randomiser->only_unicode(1);
+    print $randomiser->only_unicode();
+
+    # this produces unicode strings ONLY
+    # Data::Random::Structure's usual repertoire does not apply
+    # there will be no numbers, no bool, no integer, no float, no nothing
+    $randomiser->only_unicode(2);
+    print $randomiser->only_unicode();
 
 =head1 METHODS
 
@@ -188,23 +292,170 @@ L<Data::Random::Structure>.
 
 =head2 C<new>
 
-Constructor. See L<Data::Random::Structure::new> for the API. In short,
-it takes 2 optional arguments, C<max_depth> and C<max_elements>.
-
-=head2 C<generate>
-
-Constructor with these optional parameters:
+Constructor. In addition to L<Data::Random::Structure::new> API, it
+takes parameter C<< 'only-unicode' >> with a valid value of 0, 1 or 2.
+Default is 0.
 
 =over 4
 
-=item max_depth
+=item 0 : keys, values, elements of the produced data structure will be
+a mixture of unicode strings, plus L<Data::Random::Structure>'s full
+repertoire which includes non-unicode strings, integers, floats etc.
 
-=item max_elements
+=item 1 : keys, values, elements of the produced data structure will be
+a mixture of unicode strings, plus L<Data::Random::Structure>'s full
+repertoire except non-unicode strings. That is, all strings will be
+unicode. But there will possibly be integers etc.
+
+=item 2 : keys, values, elements of the produced data structure will be
+only unicode strings. Nothing of L<Data::Random::Structure>'s
+repertoire applies. Only unicode strings, no integers, no nothing.
 
 =back
 
-This method is inherited from the parent as is.
-See L<Data::Random::Structure::new> for the exact API.
+Controlling the scalar data types can also be done on the fly, after
+the object has been created using L<Data::Random::Structure::UTF8::only_unicode>
+method.
+
+Additionally, L<Data::Random::Structure::new>'s API reports that
+the constructor takes 2 optional arguments, C<max_depth> and C<max_elements>.
+See L<Data::Random::Structure::new> for up-to-date, official information.
+
+=head2 C<only_unicode>
+
+Controls what scalar types to be included in the nested
+data structures generated. With no parameters it returns back
+the current setting. Otherwise, valid input parameters and their
+meanings are listed in L<Data::Random::Structure::UTF8::new>
+
+=head2 C<generate>
+
+Generate a nested data structure according to the specification
+set in the constructor. See L<Data::Random::Structure::generate> for
+all options. This method is not overriden by this module.
+
+It returns the Perl data structure as a reference.
+
+=head2 C<generate_scalar>
+
+Generate a scalar which may contain unicode content.
+See L<Data::Random::Structure::generate_scalar> for
+all options. This method is overriden by this module but
+calls the parent's too.
+
+It returns a Perl string.
+
+=head2 C<generate_array>
+
+Generate an array with random, possibly unicode, content.
+See L<Data::Random::Structure::generate_array> for
+all options. This method is not overriden by this module.
+
+It returns the Perl array as a reference.
+
+=head2 C<generate_hash>
+
+Generate an array with random, possibly unicode, content.
+See L<Data::Random::Structure::generate_array> for
+all options. This method is not overriden by this module.
+
+It returns the Perl array as a reference.
+
+=head2 C<random_char_UTF8>
+
+Return a random unicode character, guaranteed to be valid.
+This is a very simple method which selects characters
+from some pre-set code pages (Greek, Cyrillic, Cherokee,
+Ethiopic, Javanese) with equal probability.
+These pages and ranges were selected so that there are
+no "holes" between them which would produce an invalid
+character. Therefore, not all characters from the
+particular code page will be produced.
+
+Returns a random unicode character guaranteed to be valid.
+
+=head2 C<random_chars_UTF8>
+
+  my $ret = random_chars_UTF8($optional_paramshash)
+
+Arguments:
+
+=over 4
+
+=item * C<$optional_paramshash> : can contain
+
+=over 4
+
+=item C<'min'> sets the minimum length of the random sequence to be returned, default is 6
+
+=item C<'max'> sets the maximum length of the random sequence to be returned, default is 32
+
+=back
+
+=back
+
+Return a random unicode-only string optionally specifying
+minimum and maximum length. See L<Data::Random::Structure::UTF8::random_chars_UTF8>
+for the range of characters it returns. The returned string
+is unicode and is guaranteed all its characters are valid.
+
+=head2 C<check_content_recursively>
+
+  my $ret = check_content_recursively($perl_var, $paramshashref)
+
+Arguments:
+
+=over 4
+
+=item * C<$perl_var> : a Perl variable containing an arbitrarily nested data structure
+
+=item * C<$paramshashref> : can contain one or more of the following keys:
+
+=over 4
+
+=item C<'numbers'> set it to 1 to look for numbers (possibly among other things).
+If set to 1 and a number C<123> or C<"123"> is found, this sub returns 1.
+
+=item C<'strings-unicode'> set it to 1 to look for unicode strings (possibly among other things).
+The definition of "unicode string" is that at least one its characters is unicode.
+If set to 1 and a "unicode string" is found, this sub returns 1.
+
+=item C<'strings-plain'> set it to 1 to look for plain strings (possibly among other things).
+The definition of "plain string" is that none of its characters is unicode.
+If set to 1 and a "plain string" is found, this sub returns 1.
+
+=item C<'strings'> set it to 1 to look for plain or unicode strings (possibly among other things).
+If set to 1 and a "plain string" or "unicode string" is found, this sub returns 1. Basically,
+it returns 1 when a string is found (as opposed to a "number").
+
+=back
+
+=back
+
+Return value: 1 or 0 depending what was looking for was found.
+
+This is not an object-oriented method. It is called thously:
+
+    if( Data::Random::Structure::UTF8::check_content_recursively(
+	{'abc'=>123, 'xyz'=>[1,2,3]},
+	{
+		'numbers' => 1,
+	}
+    ) ){ print "data structure contains numbers\n" }
+
+CAVEAT: as its name suggests, this is a recursive function. Beware
+of extremely deep data structures. Deep, not long. If you do get
+C<<"Deep recursion..." warnings>>, and you do insist to go ahead,
+this will remove the warnings (but are you sure?):
+    {
+        no warnings 'recursion';
+        if( Data::Random::Structure::UTF8::check_content_recursively(
+	    {'abc'=>123, 'xyz'=>[1,2,3]},
+	    {
+		'numbers' => 1,
+	    }
+        ) ){ print "data structure contains numbers\n" }
+    }
 
 =head1 SEE ALSO
 
@@ -267,7 +518,10 @@ So, this issue is not going to make the module die but may make it
 to skew the random results in favour of unicode strings (which
 is the fallback, default action when can't parse the type).
 
-The third issue escapes me right now.
+The third issue is that it does not force unicode content.
+It is a random decision whether to have unicode content or not
+for some items in the resultant data structure. A big enough data
+structure is bound to have some unicode content.
 
 =head1 SUPPORT
 

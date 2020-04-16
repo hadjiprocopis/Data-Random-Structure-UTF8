@@ -1,8 +1,10 @@
 #!perl -T
-use 5.006;
+use 5.8.0;
 use strict;
 use warnings;
 use Test::More;
+
+our $VERSION='0.04';
 
 unless ( $ENV{RELEASE_TESTING} ) {
     plan( skip_all => "Author tests not required for installation" );

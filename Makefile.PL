@@ -16,7 +16,7 @@ my %WriteMakefileArgs = (
     VERSION_FROM     => 'lib/Data/Random/Structure/UTF8.pm',
     ABSTRACT_FROM    => 'lib/Data/Random/Structure/UTF8.pm',
     LICENSE          => 'artistic_2',
-    MIN_PERL_VERSION => '5.006',
+    MIN_PERL_VERSION => '5.8.0',
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker' => '0',
     },
@@ -26,9 +26,7 @@ my %WriteMakefileArgs = (
 	'Data::Dumper' => '0',
     },
     PREREQ_PM => {
-	'Unicode::UCD' => '0',
-	'List::Util' => '0',
-	'Carp' => '0',
+	'Scalar::Util' => '0',
 	'Data::Random::Structure' => '0',
     },
  	# Thanks to marto @ Perlmonks.org
@@ -38,14 +36,14 @@ my %WriteMakefileArgs = (
 	requires    => { perl    => '5.10.0' },
         resources   => {
             license    => 'artistic_2',
-	    homepage   => 'https://metacpan.org/module/Statistics::Covid',
+	    homepage   => 'https://metacpan.org/module/Data::Random::Structure::UTF8',
             repository => {
-                url  => 'https://github.com/hadjiprocopis/statistics-covid',
-                web  => 'https://github.com/hadjiprocopis/statistics-covid',
+                url  => 'https://github.com/hadjiprocopis/Data-Random-Structure-UTF8',
+                web  => 'https://github.com/hadjiprocopis/Data-Random-Structure-UTF8',
                 type => 'git',
             },
             bugtracker => {
-                web => 'https://github.com/hadjiprocopis/statistics-covid/issues',
+                web => 'https://github.com/hadjiprocopis/Data-Random-Structure-UTF8/issues',
             }
         },
     },

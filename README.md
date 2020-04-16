@@ -4,7 +4,7 @@ Data::Random::Structure::UTF8 - Produce nested data structures with unicode keys
 
 # VERSION
 
-Version 0.03
+Version 0.04
 
 # SYNOPSIS
 
@@ -37,49 +37,60 @@ strings, at the moment) unicode strings.
       use Data::Random::Structure::UTF8;
 
       my $randomiser = Data::Random::Structure::UTF8->new(
-          max_depth => 5,
-          max_elements => 20,
+          'max_depth' => 5,
+          'max_elements' => 20,
+          # all the strings produced (keys, values, elements)
+          # will be unicode strings
+          'only-unicode' => 1,
+          # all the strings produced (keys, values, elements)
+          # will be a mixture of unicode and non-unicode
+          # this is the default behaviour
+          #'only-unicode' => 0,
+          # only unicode strings will be produced for (keys, values, elements),
+          # there will be no numbers, no bool, only unicode strings
+          #'only-unicode' => 2,
       );
       my $perl_var = $randomiser->generate() or die;
       print pp($perl_var);
 
       # which prints the usual escape mess of Dump and Dumper
   [
-    "\x{7D5A}\x{4EC1}\x{6AE}\x{1F9A}\x{190}\x{72D9}\x{2EE2}\x{4C54}\x{ED71}\x{8161}\x{161E}",
-    "\x{E6E2}\x{75A4}\x{194B}\x{678D}\x{B522}\x{B06F}\x{FFAA}\x{10733}\x{C35F}\x{8B77}\x{FF25}\x{14C8}\x{843A}\x{E2EE}\x{10360}\x{C108}\x{3E55}",
+    "\x{7D5A}\x{4EC1}",
+    "\x{E6E2}\x{75A4}",
     329076,
     0.255759160148987,
-    "RZY}A+3Q%`J/Oonu7xEHV)z-<",
-    1,
-    "\x{A847}\x{6E7E}\x{47A5}\x{7D6}\x{F6C1}\x{7315}\x{7B94}\x{AD5B}\x{F87C}\x{7FCB}\x{1FEB}\x{D1EA}\x{6B65}\x{10635}\x{1287}\x{5466}\x{F66E}\x{F501}\x{5D8B}\x{FA87}\x{3E03}\x{9279}",
-    "\x{FBEE}\x{66C9}\x{5880}\x{F861}\x{B0FB}\x{18BF}\x{1B8}\x{EFD9}\x{3448}\x{F39C}9\x{85AF}\x{97D3}\x{A2D1}\x{61C}\x{BC54}\x{3012}\x{963F}\x{EA46}\x{B0C7}\x{CF89}\x{8C3F}\x{1062F}\x{50D7}\x{F6AB}\x{8261}",
-    150763,
-    0.995195566715751,
-    540387,
-    "n^h%KIOdtl?v8(bCXkPNjx74R",
-    0.659785029547361,
-    "\x{54AA}\x{F0DE}\x{35F7}\x{CEF3}\x{E3BE}\x{2AEE}",
-    0.0238308786033095,
-    59973,
     [
       "TEb97qJt",
       1,
       "_ow|J\@~=6%*N;52?W3Y\$S1",
-      0.931256396568543,
-      0.466393020781872,
-      0.400670775469877,
-      "\x{EABE}\x{22E8}\x{F8C7}\x{2E99}\x{3A55}\x{F3A2}\x{C5BA}",
-      0.113700689106214,
-      "1-M&B/",
-      "\x{82D0}\x{7AB0}\x{9BDC}\x{3A08}\x{F236}\x{DBC2}\x{2093}\x{1608}\x{A16F}\x{A2D2}\x{4FE8}\x{2780}\x{8625}\x{11A1}\x{2F8}\x{92FA}\x{B10D}\x{EF1C}\x{1008C}\x{C5FE}\x{48D7}\x{A081}\x{B8B5}\x{5F88}\x{16F6}\x{F44E}\x{EB52}\x{3CE4}\x{3780}\x{6AB6}\x{59F5}",
-      0.941029056924428,
-      0.27890646290453,
-      "\x{3EFA}\x{5C5A}\x{EF74}\x{FB2F}\x{A663}\x{9E55}\x{2AAA}\x{CC77}\x{5C41}",
-      "\\Rz.U<\"yD,qMu~lN",
-      305433,
-      "A#W&V\"",
-      1,
+      {
+        "x{75A4}x{75A4}" => 123,
+        "123" => "\x{7D5A}\x{4EC1}",
+        "xyz" => [1, 2, "\x{7D5A}\x{4EC1}"],
+      },
     ],
+
+      # can control the scalar type (for keys, values, items) on the fly
+      # this produces unicode strings in addition to
+      # Data::Random::Structure's usual repertoire:
+      # non-unicode-string, numbers, bool, integer, float, etc.
+      # (see there for the list)
+      $randomiser->only_unicode(0); # the default: anything plus unicode strings
+      print $randomiser->only_unicode();
+
+      # this produces unicode strings in addition to
+      # Data::Random::Structure's usual repertoire:
+      # numbers, bool, integer, float, etc.
+      # (see there for the list)
+      # EXCEPT non-unicode-strings, (all strings will be unicode)
+      $randomiser->only_unicode(1);
+      print $randomiser->only_unicode();
+
+      # this produces unicode strings ONLY
+      # Data::Random::Structure's usual repertoire does not apply
+      # there will be no numbers, no bool, no integer, no float, no nothing
+      $randomiser->only_unicode(2);
+      print $randomiser->only_unicode();
 
 # METHODS
 
@@ -88,18 +99,141 @@ This is an object oriented module which has exactly the same API as
 
 ## `new`
 
-Constructor. See [Data::Random::Structure::new](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure%3A%3Anew) for the API. In short,
-it takes 2 optional arguments, `max_depth` and `max_elements`.
+Constructor. In addition to [Data::Random::Structure::new](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure%3A%3Anew) API, it
+takes parameter `'only-unicode'` with a valid value of 0, 1 or 2.
+Default is 0.
+
+- 0 : keys, values, elements of the produced data structure will be
+a mixture of unicode strings, plus [Data::Random::Structure](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure)'s full
+repertoire which includes non-unicode strings, integers, floats etc.
+- 1 : keys, values, elements of the produced data structure will be
+a mixture of unicode strings, plus [Data::Random::Structure](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure)'s full
+repertoire except non-unicode strings. That is, all strings will be
+unicode. But there will possibly be integers etc.
+- 2 : keys, values, elements of the produced data structure will be
+only unicode strings. Nothing of [Data::Random::Structure](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure)'s
+repertoire applies. Only unicode strings, no integers, no nothing.
+
+Controlling the scalar data types can also be done on the fly, after
+the object has been created using [Data::Random::Structure::UTF8::only\_unicode](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure%3A%3AUTF8%3A%3Aonly_unicode)
+method.
+
+Additionally, [Data::Random::Structure::new](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure%3A%3Anew)'s API reports that
+the constructor takes 2 optional arguments, `max_depth` and `max_elements`.
+See [Data::Random::Structure::new](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure%3A%3Anew) for up-to-date, official information.
+
+## `only_unicode`
+
+Controls what scalar types to be included in the nested
+data structures generated. With no parameters it returns back
+the current setting. Otherwise, valid input parameters and their
+meanings are listed in [Data::Random::Structure::UTF8::new](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure%3A%3AUTF8%3A%3Anew)
 
 ## `generate`
 
-Constructor with these optional parameters:
+Generate a nested data structure according to the specification
+set in the constructor. See [Data::Random::Structure::generate](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure%3A%3Agenerate) for
+all options. This method is not overriden by this module.
 
-- max\_depth
-- max\_elements
+It returns the Perl data structure as a reference.
 
-This method is inherited from the parent as is.
-See [Data::Random::Structure::new](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure%3A%3Anew) for the exact API.
+## `generate_scalar`
+
+Generate a scalar which may contain unicode content.
+See [Data::Random::Structure::generate\_scalar](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure%3A%3Agenerate_scalar) for
+all options. This method is overriden by this module but
+calls the parent's too.
+
+It returns a Perl string.
+
+## `generate_array`
+
+Generate an array with random, possibly unicode, content.
+See [Data::Random::Structure::generate\_array](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure%3A%3Agenerate_array) for
+all options. This method is not overriden by this module.
+
+It returns the Perl array as a reference.
+
+## `generate_hash`
+
+Generate an array with random, possibly unicode, content.
+See [Data::Random::Structure::generate\_array](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure%3A%3Agenerate_array) for
+all options. This method is not overriden by this module.
+
+It returns the Perl array as a reference.
+
+## `random_char_UTF8`
+
+Return a random unicode character, guaranteed to be valid.
+This is a very simple method which selects characters
+from some pre-set code pages (Greek, Cyrillic, Cherokee,
+Ethiopic, Javanese) with equal probability.
+These pages and ranges were selected so that there are
+no "holes" between them which would produce an invalid
+character. Therefore, not all characters from the
+particular code page will be produced.
+
+Returns a random unicode character guaranteed to be valid.
+
+## `random_chars_UTF8`
+
+    my $ret = random_chars_UTF8($optional_paramshash)
+
+Arguments:
+
+- `$optional_paramshash` : can contain
+    - `'min'` sets the minimum length of the random sequence to be returned, default is 6
+    - `'max'` sets the maximum length of the random sequence to be returned, default is 32
+
+Return a random unicode-only string optionally specifying
+minimum and maximum length. See [Data::Random::Structure::UTF8::random\_chars\_UTF8](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure%3A%3AUTF8%3A%3Arandom_chars_UTF8)
+for the range of characters it returns. The returned string
+is unicode and is guaranteed all its characters are valid.
+
+## `check_content_recursively`
+
+    my $ret = check_content_recursively($perl_var, $paramshashref)
+
+Arguments:
+
+- `$perl_var` : a Perl variable containing an arbitrarily nested data structure
+- `$paramshashref` : can contain one or more of the following keys:
+    - `'numbers'` set it to 1 to look for numbers (possibly among other things).
+    If set to 1 and a number `123` or `"123"` is found, this sub returns 1.
+    - `'strings-unicode'` set it to 1 to look for unicode strings (possibly among other things).
+    The definition of "unicode string" is that at least one its characters is unicode.
+    If set to 1 and a "unicode string" is found, this sub returns 1.
+    - `'strings-plain'` set it to 1 to look for plain strings (possibly among other things).
+    The definition of "plain string" is that none of its characters is unicode.
+    If set to 1 and a "plain string" is found, this sub returns 1.
+    - `'strings'` set it to 1 to look for plain or unicode strings (possibly among other things).
+    If set to 1 and a "plain string" or "unicode string" is found, this sub returns 1. Basically,
+    it returns 1 when a string is found (as opposed to a "number").
+
+Return value: 1 or 0 depending what was looking for was found.
+
+This is not an object-oriented method. It is called thously:
+
+    if( Data::Random::Structure::UTF8::check_content_recursively(
+        {'abc'=>123, 'xyz'=>[1,2,3]},
+        {
+                'numbers' => 1,
+        }
+    ) ){ print "data structure contains numbers\n" }
+
+CAVEAT: as its name suggests, this is a recursive function. Beware
+of extremely deep data structures. Deep, not long. If you do get
+`<"Deep recursion..." warnings`>, and you do insist to go ahead,
+this will remove the warnings (but are you sure?):
+    {
+        no warnings 'recursion';
+        if( Data::Random::Structure::UTF8::check\_content\_recursively(
+	    {'abc'=>123, 'xyz'=>\[1,2,3\]},
+	    {
+		'numbers' => 1,
+	    }
+        ) ){ print "data structure contains numbers\\n" }
+    }
 
 # SEE ALSO
 
@@ -157,7 +291,10 @@ So, this issue is not going to make the module die but may make it
 to skew the random results in favour of unicode strings (which
 is the fallback, default action when can't parse the type).
 
-The third issue escapes me right now.
+The third issue is that it does not force unicode content.
+It is a random decision whether to have unicode content or not
+for some items in the resultant data structure. A big enough data
+structure is bound to have some unicode content.
 
 # SUPPORT
 
