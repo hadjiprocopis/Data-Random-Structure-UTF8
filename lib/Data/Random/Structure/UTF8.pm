@@ -94,7 +94,7 @@ sub	generate_scalar {
 
 =head1 NAME
 
-Data::Random::Structure::UTF8 - The great new Data::Random::Structure::UTF8!
+Data::Random::Structure::UTF8 - Produce nested data structures with unicode keys, values, elements.
 
 =head1 VERSION
 
@@ -102,8 +102,19 @@ Version 0.01
 
 =head1 SYNOPSIS
 
-This module extends L<Data::Random::Structure> to add functionality
-for producing random unicode strings:
+This module produces random, arbitrarily deep or long,
+nested Perl data structures  with unicode content: keys, values, array
+elements, scalar content. This is an object-oriented module
+which inherits from
+L<Data::Random::Structure> and extends its functionality by
+providing for unicode keys and values for hashtables and
+unicode content for array elements or scalars, randomly mixed with the
+usual repertoire of L<Data::Random::Structure>, which is
+non-unicode strings,
+numerical, boolean values and the assorted entourage to the court
+of Emperor Computer, post-Turing.
+
+For example, it produces these:
 
 =over 4
 
@@ -180,6 +191,31 @@ L<Data::Random::Structure>.
 Constructor. See L<Data::Random::Structure::new> for the API. In short,
 it takes 2 optional arguments, C<max_depth> and C<max_elements>.
 
+=head2 C<generate>
+
+Constructor with these optional parameters:
+
+=over 4
+
+=item max_depth
+
+=item max_elements
+
+=back
+
+This method is inherited from the parent as is.
+See L<Data::Random::Structure::new> for the exact API.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item The parent class L<Data::Random::Structure>.
+
+=item L<Data::Roundtrip> for stringifying possibly-unicode Perl data structures.
+
+=back
+
 =head1 AUTHOR
 
 Andreas Hadjiprocopis, C<< <bliako ta cpan.org / andreashad2 ta gmail.com> >>
@@ -210,9 +246,14 @@ The second issue is that this class inherits from L<Data::Random::Structure>
 and relies on it complaining about not being able to handle certain types
 which are our own extensions (the C<string-UTF8> extension). We have
 no way to know that except from catching its C<croak>'ing and parsing it
-with the following regex
+with the following code
 
-   $@ !~ /how to generate (.+?)\R/
+   my $rc = eval { $self->SUPER::generate_scalar(@_) };
+   if( $@ || ! defined($rc) ){
+     # parent doesn't know what to do, can we handle this?
+     if( $@ !~ /how to generate (.+?)\R/ ){ ...  ... }
+     else { print "type is $1" }
+     ...
 
 in order to extract the C<type> which can not be handled
 and handle it ourselves. So whenever the parent class (L<Data::Random::Structure>)

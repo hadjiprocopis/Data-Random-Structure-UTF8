@@ -1,6 +1,6 @@
 # NAME
 
-Data::Random::Structure::UTF8 - The great new Data::Random::Structure::UTF8!
+Data::Random::Structure::UTF8 - Produce nested data structures with unicode keys, values, elements.
 
 # VERSION
 
@@ -8,8 +8,19 @@ Version 0.01
 
 # SYNOPSIS
 
-This module extends [Data::Random::Structure](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure) to add functionality
-for producing random unicode strings:
+This module produces random, arbitrarily deep or long,
+nested Perl data structures  with unicode content: keys, values, array
+elements, scalar content. This is an object-oriented module
+which inherits from
+[Data::Random::Structure](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure) and extends its functionality by
+providing for unicode keys and values for hashtables and
+unicode content for array elements or scalars, randomly mixed with the
+usual repertoire of [Data::Random::Structure](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure), which is
+non-unicode strings,
+numerical, boolean values and the assorted entourage to the court
+of Emperor Computer, post-Turing.
+
+For example, it produces these:
 
 - unicode scalars: e.g. `"αβγ"`,
 - mixed arrays: e.g. `["αβγ", "123", "xyz"]`
@@ -80,6 +91,21 @@ This is an object oriented module which has exactly the same API as
 Constructor. See [Data::Random::Structure::new](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure%3A%3Anew) for the API. In short,
 it takes 2 optional arguments, `max_depth` and `max_elements`.
 
+## `generate`
+
+Constructor with these optional parameters:
+
+- max\_depth
+- max\_elements
+
+This method is inherited from the parent as is.
+See [Data::Random::Structure::new](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure%3A%3Anew) for the exact API.
+
+# SEE ALSO
+
+- The parent class [Data::Random::Structure](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure).
+- [Data::Roundtrip](https://metacpan.org/pod/Data%3A%3ARoundtrip) for stringifying possibly-unicode Perl data structures.
+
 # AUTHOR
 
 Andreas Hadjiprocopis, `<bliako ta cpan.org / andreashad2 ta gmail.com>`
@@ -110,9 +136,14 @@ The second issue is that this class inherits from [Data::Random::Structure](http
 and relies on it complaining about not being able to handle certain types
 which are our own extensions (the `string-UTF8` extension). We have
 no way to know that except from catching its `croak`'ing and parsing it
-with the following regex
+with the following code
 
-    $@ !~ /how to generate (.+?)\R/
+    my $rc = eval { $self->SUPER::generate_scalar(@_) };
+    if( $@ || ! defined($rc) ){
+      # parent doesn't know what to do, can we handle this?
+      if( $@ !~ /how to generate (.+?)\R/ ){ ...  ... }
+      else { print "type is $1" }
+      ...
 
 in order to extract the `type` which can not be handled
 and handle it ourselves. So whenever the parent class ([Data::Random::Structure](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure))
