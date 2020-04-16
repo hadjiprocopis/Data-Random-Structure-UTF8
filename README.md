@@ -8,9 +8,14 @@ Version 0.04
 
 # SYNOPSIS
 
-This module produces random, arbitrarily deep or long,
-nested Perl data structures  with unicode content: keys, values, array
-elements, scalar content. This is an object-oriented module
+This module produces random, arbitrarily deep and long,
+nested Perl data structures  with unicode content for the
+keys, values and/or array elements. Content can be forced
+to be exclusively strings and exclusively unicode. Or
+the strings can be unicode. Or anything goes, mixed
+unicode and non-unicode strings as well as integers, floats, etc.
+
+This is an object-oriented module
 which inherits from
 [Data::Random::Structure](https://metacpan.org/pod/Data%3A%3ARandom%3A%3AStructure) and extends its functionality by
 providing for unicode keys and values for hashtables and
@@ -26,6 +31,7 @@ For example, it produces these:
 - mixed arrays: e.g. `["αβγ", "123", "xyz"]`
 - hashtables with some/all keys and/or values as unicode: e.g.
 `{"αβγ" =` "123", "xyz" => "αβγ"}>
+- exclusive unicode arrays or hashtables: e.g. `["αβγ", "χψζ"]`
 
 This is accomplised by adding an extra
 type `string-UTF8` (invisible to the user) and the
@@ -225,14 +231,15 @@ CAVEAT: as its name suggests, this is a recursive function. Beware
 of extremely deep data structures. Deep, not long. If you do get
 `<"Deep recursion..." warnings`>, and you do insist to go ahead,
 this will remove the warnings (but are you sure?):
+
     {
         no warnings 'recursion';
-        if( Data::Random::Structure::UTF8::check\_content\_recursively(
-	    {'abc'=>123, 'xyz'=>\[1,2,3\]},
-	    {
-		'numbers' => 1,
-	    }
-        ) ){ print "data structure contains numbers\\n" }
+        if( Data::Random::Structure::UTF8::check_content_recursively(
+            {'abc'=>123, 'xyz'=>[1,2,3]},
+            {
+                'numbers' => 1,
+            }
+        ) ){ print "data structure contains numbers\n" }
     }
 
 # SEE ALSO
@@ -252,7 +259,7 @@ automatically be notified of progress on your bug as I make changes.
 
 # CAVEATS
 
-There are 3 issues.
+There are two issues users should know about.
 
 The first issue is that the unicode produced can make
 [Data::Dump](https://metacpan.org/pod/Data%3A%3ADump) to complain with
@@ -290,11 +297,6 @@ and not only the types we have added.
 So, this issue is not going to make the module die but may make it
 to skew the random results in favour of unicode strings (which
 is the fallback, default action when can't parse the type).
-
-The third issue is that it does not force unicode content.
-It is a random decision whether to have unicode content or not
-for some items in the resultant data structure. A big enough data
-structure is bound to have some unicode content.
 
 # SUPPORT
 

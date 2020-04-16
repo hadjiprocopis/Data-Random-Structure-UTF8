@@ -5,3 +5,18 @@ Revision history for Data-Random-Structure-UTF8
 
 0.02	2020-04-16
 	Documentation additions.
+
+0.03	2020-04-16
+	Changed minimum Perl Version to 5.008
+
+0.04	2020-04-16
+	Extended the functionality by adding only_unicode() to
+	control what scalar types to output.
+	Added check_content_recursively() which checks the type
+	of keys, values, elements of a nested data structure.
+	Added lots more tests.
+	Removed Unicode::UCD and List::Util dependency.
+	Changed minimum Perl Version to 5.8.0
+
+0.05	2020-04-16
+	Removed some external module dependencies.

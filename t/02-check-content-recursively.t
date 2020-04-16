@@ -1,8 +1,4 @@
-#!/usr/bin/env perl
-
-use lib 'blib/lib';
-
-##!perl -T
+#!perl -T
 use 5.8.0;
 use strict;
 use warnings;
@@ -19,12 +15,9 @@ binmode STDIN,  ':encoding(UTF-8)';
 use open ':std', ':encoding(utf8)';
 
 use Test::More;
-#use Test::Deep;
 
 use Data::Random::Structure::UTF8;
 
-use Data::Dump qw/pp/;
-use Data::Dumper;
 use Scalar::Util qw/looks_like_number/;
 
 # we are dealing with a random generator

@@ -195,9 +195,14 @@ Version 0.04
 
 =head1 SYNOPSIS
 
-This module produces random, arbitrarily deep or long,
-nested Perl data structures  with unicode content: keys, values, array
-elements, scalar content. This is an object-oriented module
+This module produces random, arbitrarily deep and long,
+nested Perl data structures  with unicode content for the
+keys, values and/or array elements. Content can be forced
+to be exclusively strings and exclusively unicode. Or
+the strings can be unicode. Or anything goes, mixed
+unicode and non-unicode strings as well as integers, floats, etc.
+
+This is an object-oriented module
 which inherits from
 L<Data::Random::Structure> and extends its functionality by
 providing for unicode keys and values for hashtables and
@@ -217,6 +222,8 @@ For example, it produces these:
 
 =item hashtables with some/all keys and/or values as unicode: e.g.
 C<{"αβγ" => "123", "xyz" => "αβγ"}>
+
+=item exclusive unicode arrays or hashtables: e.g. C<["αβγ", "χψζ"]>
 
 =back
 
@@ -447,6 +454,7 @@ CAVEAT: as its name suggests, this is a recursive function. Beware
 of extremely deep data structures. Deep, not long. If you do get
 C<<"Deep recursion..." warnings>>, and you do insist to go ahead,
 this will remove the warnings (but are you sure?):
+
     {
         no warnings 'recursion';
         if( Data::Random::Structure::UTF8::check_content_recursively(
@@ -479,7 +487,7 @@ automatically be notified of progress on your bug as I make changes.
 
 =head1 CAVEATS
 
-There are 3 issues.
+There are two issues users should know about.
 
 The first issue is that the unicode produced can make
 L<Data::Dump> to complain with
@@ -517,11 +525,6 @@ and not only the types we have added.
 So, this issue is not going to make the module die but may make it
 to skew the random results in favour of unicode strings (which
 is the fallback, default action when can't parse the type).
-
-The third issue is that it does not force unicode content.
-It is a random decision whether to have unicode content or not
-for some items in the resultant data structure. A big enough data
-structure is bound to have some unicode content.
 
 =head1 SUPPORT
 
