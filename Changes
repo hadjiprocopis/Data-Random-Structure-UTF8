@@ -19,6 +19,9 @@ Revision history for Data-Random-Structure-UTF8
 	Changed minimum Perl Version to 5.8.0
 
 0.05	2020-04-16
-	Fixed a bug in _check_content_recursively() , now
-	it can handle SCALAR refs.
+	Fixed a bug in _check_content_recursively()
+	(as reported by CPAN Tester, Alexandr Ciornii (CHORNY).
+	Now it can handle SCALAR refs.
+	Extended tests to cover more test cases and clarify
+	the use case of _check_content_recursively().
 	Removed some external module dependencies.

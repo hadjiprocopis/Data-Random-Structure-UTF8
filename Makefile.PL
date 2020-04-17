@@ -12,7 +12,7 @@ sub MY::libscan {
 my %WriteMakefileArgs = (
 #INSTALL_BASE => "$ENV{HOME}/usr",
     NAME             => 'Data::Random::Structure::UTF8',
-    AUTHOR           => q{Andreas Hadjiprocopis <bliako ta cpan.org / andreashad2 ta gmail.com>},
+    AUTHOR           => q{Andreas Hadjiprocopis <bliako@cpan.org>},
     VERSION_FROM     => 'lib/Data/Random/Structure/UTF8.pm',
     ABSTRACT_FROM    => 'lib/Data/Random/Structure/UTF8.pm',
     LICENSE          => 'artistic_2',
