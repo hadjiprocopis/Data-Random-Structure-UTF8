@@ -23,6 +23,8 @@ my %WriteMakefileArgs = (
     TEST_REQUIRES => {
         'Test::More' => '0',
 	'Scalar::Util' => '0',
+	'Data::Dump' => '0',
+	'Data::Dumper' => '0',
     },
     PREREQ_PM => {
 	'Scalar::Util' => '0',

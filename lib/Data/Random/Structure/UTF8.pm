@@ -4,7 +4,7 @@ use 5.8.0;
 use strict;
 use warnings;
 
-our $VERSION='0.05';
+our $VERSION='0.06';
 
 use parent 'Data::Random::Structure';
 
@@ -195,7 +195,7 @@ Data::Random::Structure::UTF8 - Produce nested data structures with unicode keys
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =head1 SYNOPSIS
 

@@ -5,7 +5,7 @@ use warnings;
 
 use utf8;
 
-our $VERSION='0.05';
+our $VERSION='0.06';
 
 binmode STDERR, ':encoding(UTF-8)';
 binmode STDOUT, ':encoding(UTF-8)';
@@ -15,10 +15,7 @@ binmode STDIN,  ':encoding(UTF-8)';
 use open ':std', ':encoding(utf8)';
 
 use Test::More;
-#use Test::Deep;
-
 use Data::Random::Structure::UTF8;
-
 use Data::Dump qw/pp/;
 use Data::Dumper;
 

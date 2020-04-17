@@ -25,3 +25,6 @@ Revision history for Data-Random-Structure-UTF8
 	Extended tests to cover more test cases and clarify
 	the use case of _check_content_recursively().
 	Removed some external module dependencies.
+
+0.06	2020-04-16
+	Added missing dependencies as reported by Slaven Rezic (SREZIC)

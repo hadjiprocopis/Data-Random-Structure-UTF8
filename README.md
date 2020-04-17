@@ -4,7 +4,7 @@ Data::Random::Structure::UTF8 - Produce nested data structures with unicode keys
 
 # VERSION
 
-Version 0.05
+Version 0.06
 
 # SYNOPSIS
 
