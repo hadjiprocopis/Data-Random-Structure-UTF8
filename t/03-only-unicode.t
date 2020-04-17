@@ -25,8 +25,6 @@ my $MAXTRIALS=100;
 
 ############################
 #### nothing to change below
-srand 42+12;
-
 my $num_tests = 0;
 
 my ($perl_var, $found, $found1, $found2, $trials, $rc, $alength, $randomiser);

@@ -146,7 +146,8 @@ sub	_check_content_recursively {
 	my $looking_for = $_[1];
 	my $aref = ref($inp);
 	my ($r, $v);
-	if( $aref eq '' ){
+	if( ($aref eq '') || ($aref eq 'SCALAR') ){
+		if( $aref eq 'SCALAR' ){ $inp = $$inp }
 		if( looks_like_number($inp) ){
 			return 1 if $looking_for & 1; # a number
 			return 0;
